@@ -4,7 +4,7 @@ import math
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -32,17 +32,16 @@ class FlashCard:
     translation: str
     extra: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.original = self._format_markdown(self.original)
         self.translation = self._format_markdown(self.translation)
         self.extra = self._format_markdown(self.extra)
 
     @staticmethod
-    def _format_markdown(text: str):
+    def _format_markdown(text: str) -> str:
         text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", text)  # Bold
         text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", text)  # Italic
-        text = re.sub(r"__(.*?)__", r"<u>\1</u>", text)  # Underline
-        return text
+        return re.sub(r"__(.*?)__", r"<u>\1</u>", text)  # Underline
 
 
 @dataclass
@@ -57,30 +56,30 @@ class FlashCardGenerator:
     right_margin: float = 0.5 * cm
     card_height: float = 2.3 * cm
 
-    def add_entry(self, original: str, translation: str, extra=""):
+    def add_entry(self, original: str, translation: str, extra: str = "") -> Self:
         self.entries.append(FlashCard(original, translation, extra))
         return self
 
-    def set_cards_per_row(self, count: int) -> "Self":
+    def set_cards_per_row(self, count: int) -> Self:
         self.cards_per_row = count
         return self
 
-    def set_filename(self, filename: str):
+    def set_filename(self, filename: str) -> Self:
         self.filename = filename
         return self
 
-    def set_page_size(self, size: Tuple[float, float]):
+    def set_page_size(self, size: Tuple[float, float]) -> Self:
         self.page_size = size
         return self
 
     def set_margins(
         self,
         *,
-        top: float = None,
-        bottom: float = None,
-        left: float = None,
-        right: float = None,
-    ):
+        top: Optional[float] = None,
+        bottom: Optional[float] = None,
+        left: Optional[float] = None,
+        right: Optional[float] = None,
+    ) -> Self:
         if top is not None:
             self.top_margin = top
         if bottom is not None:
@@ -91,11 +90,11 @@ class FlashCardGenerator:
             self.right_margin = right
         return self
 
-    def set_card_height(self, height):
+    def set_card_height(self, height: float) -> Self:
         self.card_height = height
         return self
 
-    def generate(self):
+    def generate(self) -> None:
         doc = SimpleDocTemplate(
             self.filename,
             pagesize=self.page_size,
@@ -109,18 +108,14 @@ class FlashCardGenerator:
         page_width, page_height = self.page_size
         card_width = page_width / self.cards_per_row - 0.2 * cm
 
-        cards_per_page = self.cards_per_row * math.floor(
-            (page_height - 1 * cm) / self.card_height
-        )
+        cards_per_page = self.cards_per_row * math.floor((page_height - 1 * cm) / self.card_height)
 
         if len(self.entries) > self.cards_per_row:
             while len(self.entries) % self.cards_per_row != 0:
                 self.entries.append(FlashCard("", "", ""))
 
         styles = getSampleStyleSheet()
-        centered_style = ParagraphStyle(
-            name="Centered", parent=styles["Normal"], alignment=TA_CENTER
-        )
+        centered_style = ParagraphStyle(name="Centered", parent=styles["Normal"], alignment=TA_CENTER)
 
         for i in range(0, len(self.entries), cards_per_page):
             page_entries = self.entries[i : i + cards_per_page]
@@ -133,9 +128,7 @@ class FlashCardGenerator:
                 for j in range(0, len(page_entries), self.cards_per_row)
             ]
 
-            self._place_on_page(
-                self.card_height, card_width, self.cards_per_row, front_data, story
-            )
+            self._place_on_page(self.card_height, card_width, self.cards_per_row, front_data, story)
 
             back_data = [
                 [
@@ -145,23 +138,21 @@ class FlashCardGenerator:
                 for j in range(0, len(page_entries), self.cards_per_row)
             ]
 
-            self._place_on_page(
-                self.card_height, card_width, self.cards_per_row, back_data, story
-            )
+            self._place_on_page(self.card_height, card_width, self.cards_per_row, back_data, story)
 
         doc.build(story)
 
     @classmethod
     def _create_front_paragraph(cls, entry: FlashCard, style: ParagraphStyle) -> Paragraph:
         if entry.extra:
-            return Paragraph(
-                f"{entry.original}<br/><font size=8>{entry.extra}</font>", style
-            )
+            return Paragraph(f"{entry.original}<br/><font size=8>{entry.extra}</font>", style)
 
         return Paragraph(entry.original, style)
 
     @staticmethod
-    def _place_on_page(card_height: float, card_width: float, cards_per_row: int, data: List[List[Paragraph]], story: List[Flowable]) -> None:
+    def _place_on_page(
+        card_height: float, card_width: float, cards_per_row: int, data: List[List[Paragraph]], story: List[Flowable]
+    ) -> None:
         table = Table(
             data,
             colWidths=[card_width] * cards_per_row,

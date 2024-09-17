@@ -1,13 +1,14 @@
+from pathlib import Path
+from typing import List
+
 import pytest
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph
 
 from flashcard_generator import FlashCard, FlashCardGenerator
 
-# You might need to adjust the import statement above based on how you've structured your project
 
-
-def test_format_markdown():
+def test_format_markdown() -> None:
     assert FlashCard._format_markdown("**bold**") == "<b>bold</b>"
     assert FlashCard._format_markdown("*italic*") == "<i>italic</i>"
     assert FlashCard._format_markdown("__underline__") == "<u>underline</u>"
@@ -18,11 +19,9 @@ def test_format_markdown():
     assert FlashCard._format_markdown("normal text") == "normal text"
 
 
-def test_create_front_paragraph():
+def test_create_front_paragraph() -> None:
     generator = FlashCardGenerator()
-    style = generator._create_front_paragraph.__func__.__globals__["ParagraphStyle"](
-        "test"
-    )
+    style = generator._create_front_paragraph.__func__.__globals__["ParagraphStyle"]("test")
 
     entry1 = FlashCard("Original", "Translation", "Extra")
     para1 = generator._create_front_paragraph(entry1, style)
@@ -35,18 +34,14 @@ def test_create_front_paragraph():
 
     entry3 = FlashCard("No Extra", "Translation")
     para3 = generator._create_front_paragraph(entry3, style)
-    assert (
-        para3.text == "No Extra"
-    )  # No <br/> or <font> tags when there's no extra text
+    assert para3.text == "No Extra"  # No <br/> or <font> tags when there's no extra text
 
 
-def test_generator_configuration():
+def test_generator_configuration() -> None:
     generator = FlashCardGenerator()
-    generator.set_filename("test.pdf").set_cards_per_row(4).set_page_size(
-        (10 * cm, 15 * cm)
-    ).set_margins(top=1 * cm, bottom=1 * cm, left=1 * cm, right=1 * cm).set_card_height(
-        3 * cm
-    )
+    generator.set_filename("test.pdf").set_cards_per_row(4).set_page_size((10 * cm, 15 * cm)).set_margins(
+        top=1 * cm, bottom=1 * cm, left=1 * cm, right=1 * cm
+    ).set_card_height(3 * cm)
 
     assert generator.filename == "test.pdf"
     assert generator.cards_per_row == 4
@@ -58,11 +53,11 @@ def test_generator_configuration():
     assert generator.card_height == 3 * cm
 
 
-def test_add_entries():
+def test_add_entries() -> None:
     generator = FlashCardGenerator()
-    generator.add_entry("Word1", "Translation1", "Extra1").add_entry(
-        "Word2", "Translation2"
-    ).add_entry("Word3", "Translation3", "Extra3")
+    generator.add_entry("Word1", "Translation1", "Extra1").add_entry("Word2", "Translation2").add_entry(
+        "Word3", "Translation3", "Extra3"
+    )
 
     assert len(generator.entries) == 3
     assert generator.entries[0] == FlashCard("Word1", "Translation1", "Extra1")
@@ -70,23 +65,21 @@ def test_add_entries():
     assert generator.entries[2] == FlashCard("Word3", "Translation3", "Extra3")
 
 
-def test_generate_flashcards(tmp_path):
+def test_generate_flashcards(tmp_path: Path) -> None:
     pdf_file = tmp_path / "test_flashcards.pdf"
     generator = FlashCardGenerator()
-    generator.set_filename(str(pdf_file)).add_entry(
-        "Word1", "Translation1", "Extra1"
-    ).add_entry("Word2", "Translation2").add_entry(
-        "Word3", "Translation3", "Extra3"
-    ).generate()
+    generator.set_filename(str(pdf_file)).add_entry("Word1", "Translation1", "Extra1").add_entry(
+        "Word2", "Translation2"
+    ).add_entry("Word3", "Translation3", "Extra3").generate()
 
     assert pdf_file.exists()
     # You might want to add more assertions here to check the content of the PDF
 
 
-def test_padding_in_generate_flashcards(monkeypatch):
+def test_padding_in_generate_flashcards(monkeypatch: pytest.MonkeyPatch) -> None:
     called_with = []
 
-    def mock_place_on_page(self, card_height, card_width, cards_per_row, data, story):
+    def mock_place_on_page(_0: object, _1: float, _2: float, _3: int, data: List, _5: List) -> None:
         called_with.append(len(data[0]))  # Append the number of cards in a row
 
     monkeypatch.setattr(FlashCardGenerator, "_place_on_page", mock_place_on_page)
@@ -100,10 +93,10 @@ def test_padding_in_generate_flashcards(monkeypatch):
     assert called_with == [5, 5]  # Should be padded to two rows of 5
 
 
-def test_no_padding_for_single_row(monkeypatch):
+def test_no_padding_for_single_row(monkeypatch: pytest.MonkeyPatch) -> None:
     called_with = []
 
-    def mock_place_on_page(_1, _2, _3, _4, data, _5):
+    def mock_place_on_page(_0: object, _1: float, _2: float, _3: int, data: List, _5: List) -> None:
         called_with.append(len(data[0]))
 
     monkeypatch.setattr(FlashCardGenerator, "_place_on_page", mock_place_on_page)
@@ -115,7 +108,3 @@ def test_no_padding_for_single_row(monkeypatch):
     generator.generate()
 
     assert called_with == [3, 3]  # Should not be padded, just one row of 3
-
-
-if __name__ == "__main__":
-    pytest.main()
