@@ -16,3 +16,59 @@ pytest-cov = "*"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+target-version = "py37"
+fix = true
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules
+select = [
+    "E",  # pycodestyle/flake8
+    "W",  # "
+    "F",  # pyflakes
+    "C",  # mccabe
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "Q",  # flake8-quotes
+    "N",  # pep8-naming
+    "ANN",  # flake8-annotations
+    "A",  # flake8-builtins
+    #    "COM",  # flake8-comma
+    "C4",  # flake8-comprehensions
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions
+    "G",  # flake8-logging-format
+    ##    "INP",  # flake8-no-pep420
+    #    "PIE",  # flake8-pie
+    "T20",  # flake8-print
+    #    "PYI",  # flake8-pyi
+    "PT",  # flake8-pytest-style
+    "RET",  # flake8-return
+    #    "SLF",  # flake8-self
+    "SIM",  # flake8-simplify
+    #    "TID",  # flake8-tidy-imports
+    #    "TCH",  # flake8-type-checking
+    "ARG",  # flake8-unused-arguments
+    #    "PTH",  # flake8-use-pathlib
+    #    "ERA",  # eradicate
+    #    "PD",  # pandas-vet
+    #    "PL",  # pylint
+    #    "FLY",  # flynt
+    #    "NPY",  # NumPy-specific rules
+    #    "AIR",  # Airflow
+    #    "PERF",  # Perflint
+    ##    "FURB",  # refurb
+    ##    "LOG",  # flake8-logging
+    "RUF",  # Ruff-specific rules
+]
+ignore = [
+    "ANN101",
+    "ANN102",
+    "ISC001",
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+case-sensitive = false
