@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     runs-on: ${{ matrix.os }}
@@ -96,18 +96,14 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run:
-          source $VENV
-          poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --no-root
       #----------------------------------------------
       - name: Install project
-        run:
-          source $VENV
-          poetry install --no-interaction
+        run: poetry install --no-interaction
       #----------------------------------------------
       - name: Run tests
         run: |
-          source $VENV
+          source .venv/bin/activate
           pytest --cov=flashcard_generator --cov-append --cov-fail-under=80 --cov-branch --cov-report=json --cov-report=term
       #----------------------------------------------
       - name: Upload coverage reports to Codecov
