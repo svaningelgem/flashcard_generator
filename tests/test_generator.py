@@ -76,35 +76,21 @@ def test_generate_flashcards(tmp_path: Path) -> None:
     # You might want to add more assertions here to check the content of the PDF
 
 
-def test_padding_in_generate_flashcards(monkeypatch: pytest.MonkeyPatch) -> None:
-    called_with = []
-
-    def mock_place_on_page(_0: object, _1: float, _2: float, _3: int, data: List, _5: List) -> None:
-        called_with.append(len(data[0]))  # Append the number of cards in a row
-
-    monkeypatch.setattr(FlashCardGenerator, "_place_on_page", mock_place_on_page)
-
+def test_padding_in_generate_flashcards(mock_place_on_page: List[int]):
     generator = FlashCardGenerator()
     generator.set_cards_per_row(5)
     for i in range(1, 7):
         generator.add_entry(f"Word{i}", f"Translation{i}")
     generator.generate()
 
-    assert called_with == [5, 5]  # Should be padded to two rows of 5
+    assert mock_place_on_page == [5, 5]  # Should be padded to two rows of 5
 
 
-def test_no_padding_for_single_row(monkeypatch: pytest.MonkeyPatch) -> None:
-    called_with = []
-
-    def mock_place_on_page(_0: object, _1: float, _2: float, _3: int, data: List, _5: List) -> None:
-        called_with.append(len(data[0]))
-
-    monkeypatch.setattr(FlashCardGenerator, "_place_on_page", mock_place_on_page)
-
+def test_no_padding_for_single_row(mock_place_on_page: List[int]) -> None:
     generator = FlashCardGenerator()
     generator.set_cards_per_row(5)
     for i in range(1, 4):
         generator.add_entry(f"Word{i}", f"Translation{i}")
     generator.generate()
 
-    assert called_with == [3, 3]  # Should not be padded, just one row of 3
+    assert mock_place_on_page == [3, 3]  # Should not be padded, just one row of 3

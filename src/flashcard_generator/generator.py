@@ -4,7 +4,8 @@ import math
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from pathlib import Path
+from typing import List, Optional, Tuple, Union
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -20,7 +21,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-if sys.version_info >= (3, 11):
+if sys.version_info >= (3, 11): # pragma: no cover
     from typing import Self
 else:
     Self = "FlashCardGenerator"
@@ -48,7 +49,7 @@ class FlashCard:
 class FlashCardGenerator:
     entries: List[FlashCard] = field(default_factory=list)
     cards_per_row: int = 5
-    filename: str = "flashcards.pdf"
+    filename: Path = Path("flashcards.pdf").resolve().absolute()
     page_size: Tuple[float, float] = A4
     top_margin: float = 0.5 * cm
     bottom_margin: float = 0.5 * cm
@@ -64,8 +65,8 @@ class FlashCardGenerator:
         self.cards_per_row = count
         return self
 
-    def set_filename(self, filename: str) -> Self:
-        self.filename = filename
+    def set_filename(self, filename: Union[str, Path]) -> Self:
+        self.filename = Path(filename).resolve().absolute()
         return self
 
     def set_page_size(self, size: Tuple[float, float]) -> Self:
