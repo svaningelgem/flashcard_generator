@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from itertools import product
 from typing import TYPE_CHECKING
 
+import pytest
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph
 
@@ -36,16 +38,21 @@ def test_create_front_paragraph(fcg: FlashCardGenerator) -> None:
     assert para3.text == "No Extra"  # No <br/> or <font> tags when there's no extra text
 
 
-def test_generator_configuration(fcg: FlashCardGenerator) -> None:
-    fcg.set_cards_per_row(4).set_page_size((10 * cm, 15 * cm)).set_margins(top=1 * cm, bottom=1 * cm, left=1 * cm, right=1 * cm).set_card_height(3 * cm)
+@pytest.mark.parametrize(("top_margin", "bottom_margin", "left_margin", "right_margin"), product([None, 1 * cm], repeat=4))
+def test_generator_configuration(
+    fcg: FlashCardGenerator, top_margin: float | None, bottom_margin: float | None, left_margin: float | None, right_margin: float | None
+) -> None:
+    fcg.set_cards_per_row(4).set_page_size((10 * cm, 15 * cm)).set_margins(
+        top=top_margin, bottom=bottom_margin, left=left_margin, right=right_margin
+    ).set_card_height(3 * cm)
 
     assert fcg.filename.name == "test_flashcards.pdf"
     assert fcg.cards_per_row == 4
     assert fcg.page_size == (10 * cm, 15 * cm)
-    assert fcg.top_margin == 1 * cm
-    assert fcg.bottom_margin == 1 * cm
-    assert fcg.left_margin == 1 * cm
-    assert fcg.right_margin == 1 * cm
+    assert fcg.top_margin == (top_margin if top_margin is not None else fcg.top_margin)
+    assert fcg.bottom_margin == (bottom_margin if bottom_margin is not None else fcg.bottom_margin)
+    assert fcg.left_margin == (left_margin if left_margin is not None else fcg.left_margin)
+    assert fcg.right_margin == (right_margin if right_margin is not None else fcg.right_margin)
     assert fcg.card_height == 3 * cm
 
 
