@@ -72,3 +72,13 @@ fixable = ["ALL"]
 
 [tool.ruff.lint.isort]
 case-sensitive = false
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+python_files = ['*_tests.py', '*_test.py', 'test_*.py']
+pythonpath = [
+    "."
+]
+requests_mock_case_sensitive = true
