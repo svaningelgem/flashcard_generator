@@ -1,9 +1,14 @@
-from typing import List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph
 
-from flashcard_generator import FlashCard, FlashCardGenerator
+from flashcard_generator import FlashCard
+
+if TYPE_CHECKING:
+    from flashcard_generator import FlashCardGenerator
 
 
 def test_format_markdown() -> None:
@@ -32,9 +37,7 @@ def test_create_front_paragraph(fcg: FlashCardGenerator) -> None:
 
 
 def test_generator_configuration(fcg: FlashCardGenerator) -> None:
-    fcg.set_cards_per_row(4).set_page_size((10 * cm, 15 * cm)).set_margins(
-        top=1 * cm, bottom=1 * cm, left=1 * cm, right=1 * cm
-    ).set_card_height(3 * cm)
+    fcg.set_cards_per_row(4).set_page_size((10 * cm, 15 * cm)).set_margins(top=1 * cm, bottom=1 * cm, left=1 * cm, right=1 * cm).set_card_height(3 * cm)
 
     assert fcg.filename.name == "test_flashcards.pdf"
     assert fcg.cards_per_row == 4
@@ -56,15 +59,13 @@ def test_add_entries(fcg: FlashCardGenerator) -> None:
 
 
 def test_generate_flashcards(fcg: FlashCardGenerator) -> None:
-    fcg.add_entry("Word1", "Translation1", "Extra1").add_entry("Word2", "Translation2").add_entry(
-        "Word3", "Translation3", "Extra3"
-    ).generate()
+    fcg.add_entry("Word1", "Translation1", "Extra1").add_entry("Word2", "Translation2").add_entry("Word3", "Translation3", "Extra3").generate()
 
     assert fcg.filename.exists()
     # You might want to add more assertions here to check the content of the PDF
 
 
-def test_padding_in_generate_flashcards(fcg: FlashCardGenerator, mock_place_on_page: List) -> None:
+def test_padding_in_generate_flashcards(fcg: FlashCardGenerator, mock_place_on_page: list) -> None:
     fcg.set_cards_per_row(5)
     for i in range(1, 7):
         fcg.add_entry(f"Word{i}", f"Translation{i}")
@@ -73,7 +74,7 @@ def test_padding_in_generate_flashcards(fcg: FlashCardGenerator, mock_place_on_p
     assert mock_place_on_page == [5, 5]  # Should be padded to two rows of 5
 
 
-def test_no_padding_for_single_row(fcg: FlashCardGenerator, mock_place_on_page: List) -> None:
+def test_no_padding_for_single_row(fcg: FlashCardGenerator, mock_place_on_page: list) -> None:
     fcg.set_cards_per_row(5)
     for i in range(1, 4):
         fcg.add_entry(f"Word{i}", f"Translation{i}")

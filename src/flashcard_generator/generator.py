@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import math
 import re
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -13,7 +12,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    Flowable,
     PageBreak,
     Paragraph,
     SimpleDocTemplate,
@@ -21,10 +19,17 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-if sys.version_info >= (3, 11):  # pragma: no cover
-    from typing import Self
-else:
-    Self = "FlashCardGenerator"
+if TYPE_CHECKING:
+    import sys
+
+    from reportlab.platypus import (
+        Flowable,
+    )
+
+    if sys.version_info >= (3, 11):  # pragma: no cover
+        from typing import Self
+    else:
+        Self = "FlashCardGenerator"
 
 
 @dataclass
@@ -47,10 +52,10 @@ class FlashCard:
 
 @dataclass
 class FlashCardGenerator:
-    entries: List[FlashCard] = field(default_factory=list)
+    entries: list[FlashCard] = field(default_factory=list)
     cards_per_row: int = 5
     filename: Path = Path("flashcards.pdf")
-    page_size: Tuple[float, float] = A4
+    page_size: tuple[float, float] = A4
     top_margin: float = 0.5 * cm
     bottom_margin: float = 0.5 * cm
     left_margin: float = 0.5 * cm
@@ -65,21 +70,21 @@ class FlashCardGenerator:
         self.cards_per_row = count
         return self
 
-    def set_filename(self, filename: Union[str, Path]) -> Self:
+    def set_filename(self, filename: str | Path) -> Self:
         self.filename = Path(filename)
         return self
 
-    def set_page_size(self, size: Tuple[float, float]) -> Self:
+    def set_page_size(self, size: tuple[float, float]) -> Self:
         self.page_size = size
         return self
 
     def set_margins(
         self,
         *,
-        top: Optional[float] = None,
-        bottom: Optional[float] = None,
-        left: Optional[float] = None,
-        right: Optional[float] = None,
+        top: float | None = None,
+        bottom: float | None = None,
+        left: float | None = None,
+        right: float | None = None,
     ) -> Self:
         if top is not None:
             self.top_margin = top
@@ -145,9 +150,7 @@ class FlashCardGenerator:
         return Paragraph(entry.original, style)
 
     @staticmethod
-    def _place_on_page(
-        card_height: float, card_width: float, cards_per_row: int, data: List[List[Paragraph]], story: List[Flowable]
-    ) -> None:
+    def _place_on_page(card_height: float, card_width: float, cards_per_row: int, data: list[list[Paragraph]], story: list[Flowable]) -> None:
         table = Table(
             data,
             colWidths=[card_width] * cards_per_row,
