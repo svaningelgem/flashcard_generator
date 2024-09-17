@@ -1,4 +1,4 @@
-name: Run tests
+name: Verification
 
 on:
   push:
@@ -17,18 +17,24 @@ concurrency:
 jobs:
 
   linting:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.7']
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       #----------------------------------------------
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.7"  # Always use the lowest possible version to ensure correctness of the code.
+          python-version: ${{ matrix.python-version }}
       #----------------------------------------------
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip
+          key: ${{ matrix.os }}-pip-${{ matrix.python-version }}
       #----------------------------------------------
       - name: Install ruff
         run: python -m pip install ruff
@@ -52,40 +58,54 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      #----------------------------------------------
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: cache
+      #----------------------------------------------
+      - name: cache venv
         uses: actions/cache@v4
         with:
-          path:
-            - ~/.local
-            - ~/.cache/pip
-            - ~/.cache/ruff
-            - .venv
+          path: .venv
+          key: ${{ matrix.os }}-venv-${{ matrix.python-version }}
+      #----------------------------------------------
+      - name: cache poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.local
           key: ${{ matrix.os }}-poetry-${{ matrix.python-version }}
-
+      #----------------------------------------------
+      - name: cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ matrix.os }}-pip-${{ matrix.python-version }}
+      #----------------------------------------------
+      - name: cache ruff
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ruff
+          key: ${{ matrix.os }}-ruff-${{ matrix.python-version }}
+      #----------------------------------------------
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
-
+      #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
-
+      #----------------------------------------------
       - name: Install project
         run: poetry install --no-interaction
-
+      #----------------------------------------------
       - name: Run tests
         run: |
           source .venv/bin/activate
           pytest --cov=flashcard_generator --cov-append --cov-fail-under=80 --cov-branch --cov-report=json --cov-report=term
-
+      #----------------------------------------------
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
