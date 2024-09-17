@@ -103,7 +103,7 @@ jobs:
       #----------------------------------------------
       - name: Run tests
         run: |
-          source .venv/bin/activate
+          source $VENV
           pytest --cov=flashcard_generator --cov-append --cov-fail-under=80 --cov-branch --cov-report=json --cov-report=term
       #----------------------------------------------
       - name: Upload coverage reports to Codecov
