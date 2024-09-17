@@ -8,8 +8,11 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, PageBreak, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
+
+__all__ = ['FlashCard', 'create_flashcards']
+
 @dataclass
-class Entry:
+class FlashCard:
     original: str
     translation: str
     extra: str = ""
@@ -29,7 +32,7 @@ def create_flashcards(filename, entries, cards_per_row=5):
     # Pad entries only if more than one row
     if len(entries) > cards_per_row:
         while len(entries) % cards_per_row != 0:
-            entries.append(Entry("", "", ""))
+            entries.append(FlashCard("", "", ""))
 
     styles = getSampleStyleSheet()
     centered_style = ParagraphStyle(name='Centered', parent=styles['Normal'], alignment=TA_CENTER)
@@ -57,8 +60,11 @@ def create_flashcards(filename, entries, cards_per_row=5):
 
 def create_front_paragraph(entry, style):
     original = format_markdown(entry.original)
-    extra = format_markdown(entry.extra) if entry.extra else ""
-    return Paragraph(f"{original}<br/><font size=8>{extra}</font>", style)
+    if entry.extra:
+        extra = format_markdown(entry.extra)
+        return Paragraph(f"{original}<br/><font size=8>{extra}</font>", style)
+
+    return Paragraph(original, style)
 
 def format_markdown(text):
     # Basic Markdown formatting
@@ -77,25 +83,3 @@ def place_on_page(card_height, card_width, cards_per_row, data, story):
     ]))
     story.append(table)
     story.append(PageBreak())
-
-# Example usage
-entries = [
-    Entry("Bonjour", "Hello", "Casual greeting"),
-    Entry("Merci", "Thank you", "**Important** phrase"),
-    Entry("Au revoir", "Goodbye", "*Formal* farewell"),
-    Entry("S'il vous plaît", "Please", "__Polite__ request"),
-    Entry("Oui", "Yes"),
-    Entry("Non", "No"),
-    Entry("Comment allez-vous?", "How are you?", "Formal inquiry"),
-    Entry("Bonne journée", "Have a good day"),
-    Entry("Chat", "Cat", "Common pet"),
-    Entry("Chien", "Dog", "Man's best friend"),
-    Entry("Maison", "House", "Place of *residence*"),
-    Entry("Arbre", "Tree", "Plant with **trunk**"),
-    Entry("Soleil", "Sun", "Center of solar system"),
-    Entry("Lune", "Moon", "Earth's natural satellite"),
-    Entry("Étoile", "Star", "Celestial body"),
-    # Add more entries as needed
-]
-
-create_flashcards("flashcards.pdf", entries)
