@@ -19,14 +19,14 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import sys
 
     from reportlab.platypus import (
         Flowable,
     )
 
-    if sys.version_info >= (3, 11):  # pragma: no cover
+    if sys.version_info >= (3, 11):
         from typing import Self
     else:
         Self = "FlashCardGenerator"

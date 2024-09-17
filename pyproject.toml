@@ -12,6 +12,7 @@ reportlab = "^4.2.2"
 
 [tool.poetry.group.test.dependencies]
 pytest-cov = "*"
+ruff = "*"
 
 [build-system]
 requires = ["poetry-core"]
@@ -105,3 +106,10 @@ pythonpath = [
     "."
 ]
 requests_mock_case_sensitive = true
+
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+]
