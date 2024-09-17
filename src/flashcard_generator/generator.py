@@ -21,7 +21,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-if sys.version_info >= (3, 11): # pragma: no cover
+if sys.version_info >= (3, 11):  # pragma: no cover
     from typing import Self
 else:
     Self = "FlashCardGenerator"
@@ -49,7 +49,7 @@ class FlashCard:
 class FlashCardGenerator:
     entries: List[FlashCard] = field(default_factory=list)
     cards_per_row: int = 5
-    filename: Path = Path("flashcards.pdf").resolve().absolute()
+    filename: Path = Path("flashcards.pdf")
     page_size: Tuple[float, float] = A4
     top_margin: float = 0.5 * cm
     bottom_margin: float = 0.5 * cm
@@ -66,7 +66,7 @@ class FlashCardGenerator:
         return self
 
     def set_filename(self, filename: Union[str, Path]) -> Self:
-        self.filename = Path(filename).resolve().absolute()
+        self.filename = Path(filename)
         return self
 
     def set_page_size(self, size: Tuple[float, float]) -> Self:
@@ -97,7 +97,7 @@ class FlashCardGenerator:
 
     def generate(self) -> None:
         doc = SimpleDocTemplate(
-            self.filename,
+            str(self.filename.resolve().absolute()),
             pagesize=self.page_size,
             topMargin=self.top_margin,
             bottomMargin=self.bottom_margin,
@@ -122,20 +122,14 @@ class FlashCardGenerator:
             page_entries = self.entries[i : i + cards_per_page]
 
             front_data = [
-                [
-                    self._create_front_paragraph(entry, centered_style)
-                    for entry in page_entries[j : j + self.cards_per_row]
-                ]
+                [self._create_front_paragraph(entry, centered_style) for entry in page_entries[j : j + self.cards_per_row]]
                 for j in range(0, len(page_entries), self.cards_per_row)
             ]
 
             self._place_on_page(self.card_height, card_width, self.cards_per_row, front_data, story)
 
             back_data = [
-                [
-                    Paragraph(entry.translation, centered_style)
-                    for entry in reversed(page_entries[j : j + self.cards_per_row])
-                ]
+                [Paragraph(entry.translation, centered_style) for entry in reversed(page_entries[j : j + self.cards_per_row])]
                 for j in range(0, len(page_entries), self.cards_per_row)
             ]
 

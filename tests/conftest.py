@@ -18,6 +18,6 @@ def mock_place_on_page(monkeypatch: pytest.MonkeyPatch) -> List[int]:
     return called_with
 
 
-@pytest.fixture()
+@pytest.fixture
 def fcg(tmp_path: Path) -> FlashCardGenerator:
     return FlashCardGenerator().set_filename(tmp_path / "test_flashcards.pdf")
