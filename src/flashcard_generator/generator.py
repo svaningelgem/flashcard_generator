@@ -117,6 +117,16 @@ class IndexedCardContent(Flowable):
             self._draw_text(line, font_size, start_y, x, align, style)
             start_y -= style.leading
 
+    def _calculate_start_position(self, x, align, line_width):
+        if align == "center":
+            return x - line_width / 2
+
+        if align == "right":
+            return x - line_width
+
+        # left align
+        return x
+
     def _draw_text(self, text, font_size, y, x, align="center", style=None):
         if style is None:
             style = self.style
@@ -126,29 +136,13 @@ class IndexedCardContent(Flowable):
         line_width = sum(stringWidth(f, style.fontName, font_size) for f in fragments if not f.startswith("<"))
 
         # Calculate starting x position
-        if align == "center":
-            start_x = x - line_width / 2
-        elif align == "right":
-            start_x = x - line_width
-        else:  # left align
-            start_x = x
+        start_x = self._calculate_start_position(x, align, line_width)
 
         current_x = start_x
         current_font = style.fontName
         for fragment in fragments:
             if fragment.startswith("<"):
-                if fragment == "<b>":
-                    current_font = self._get_font_variation(style.fontName, "Bold")
-                elif fragment == "</b>":
-                    current_font = style.fontName
-                elif fragment == "<i>":
-                    current_font = self._get_font_variation(style.fontName, "Oblique")
-                elif fragment == "</i>":
-                    current_font = style.fontName
-                elif fragment == "<u>":
-                    self.underline = True
-                elif fragment == "</u>":
-                    self.underline = False
+                current_font = self._interpret_fragment(current_font, fragment, style)
             else:
                 canvas.setFont(current_font, font_size)
                 canvas.drawString(current_x, y, fragment)
@@ -156,6 +150,21 @@ class IndexedCardContent(Flowable):
                 if getattr(self, "underline", False):
                     canvas.line(current_x, y - 2, current_x + f_width, y - 2)
                 current_x += f_width
+
+    def _interpret_fragment(self, current_font, fragment, style):
+        if fragment == "<b>":
+            current_font = self._get_font_variation(style.fontName, "Bold")
+        elif fragment == "</b>":
+            current_font = style.fontName
+        elif fragment == "<i>":
+            current_font = self._get_font_variation(style.fontName, "Oblique")
+        elif fragment == "</i>":
+            current_font = style.fontName
+        elif fragment == "<u>":
+            self.underline = True
+        elif fragment == "</u>":
+            self.underline = False
+        return current_font
 
     @staticmethod
     def _get_font_variation(base_font, variation):
