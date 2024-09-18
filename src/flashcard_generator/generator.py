@@ -36,7 +36,8 @@ if TYPE_CHECKING:  # pragma: no cover
 class FlashCard:
     original: str
     translation: str
-    extra: str = ""
+    extra: str = ""  # Placed at the front in smaller letters
+    index: str = ""  # Placed at the front right bottom in small letters
 
     def __post_init__(self) -> None:
         self.original = self._format_markdown(self.original)
@@ -62,8 +63,8 @@ class FlashCardGenerator:
     right_margin: float = 0.5 * cm
     card_height: float = 2.3 * cm
 
-    def add_entry(self, original: str, translation: str, extra: str = "") -> Self:
-        self.entries.append(FlashCard(original, translation, extra))
+    def add_entry(self, original: str, translation: str, extra: str = "", index: str = "") -> Self:
+        self.entries.append(FlashCard(original, translation, extra, index))
         return self
 
     def set_cards_per_row(self, count: int) -> Self:
@@ -144,11 +145,17 @@ class FlashCardGenerator:
 
     @classmethod
     def _create_front_paragraph(cls, entry: FlashCard, style: ParagraphStyle) -> Paragraph:
-        if entry.extra:
-            return Paragraph(f"{entry.original}<br/><font size=8>{entry.extra}</font>", style)
-
-        return Paragraph(entry.original, style)
-
+        content = f'''
+        <div style="position: relative; height: 100%;">
+            <div>
+                {entry.original}<br/>
+                {"<font size='8'>" + entry.extra + "</font>" if entry.extra else ""}
+            </div>
+            {f'<div style="position: absolute; bottom: 2px; right: 2px; font-size: 6px;">{entry.index}</div>' if entry.index else ''}
+        </div>
+        '''
+        return Paragraph(content, style)
+    
     @staticmethod
     def _place_on_page(card_height: float, card_width: float, cards_per_row: int, data: list[list[Paragraph]], story: list[Flowable]) -> None:
         table = Table(
