@@ -11,13 +11,13 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
+from reportlab.lib.utils import simpleSplit
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     Flowable,
     PageBreak,
-    Paragraph,
     SimpleDocTemplate,
     Table,
     TableStyle,
@@ -62,10 +62,9 @@ class FlashCard:
 class IndexedCardContent(Flowable):
     def __init__(self, card: FlashCard, style: ParagraphStyle):
         Flowable.__init__(self)
-
         self.card = card
         self.style = style
-        self.style.fontName = "DejaVuSans"  # Use our registered font
+        self.style.fontName = "DejaVuSans"
 
     def wrap(self, avail_width, avail_height):
         self.width = avail_width
@@ -76,11 +75,14 @@ class IndexedCardContent(Flowable):
         canvas = self.canv
         canvas.saveState()
 
-        self._draw_text(self.card.original, self.style.fontSize, self.height / 2, self.width / 2)
+        # Calculate the space available for the main content
+        main_content_height = self.height - (2 * self.style.leading)  # Reserve space for extra and index
+
+        self._draw_wrapped_text(self.card.original, self.style.fontSize, main_content_height, self.width, self.width / 2, self.height / 2)
 
         if self.card.extra:
-            extra_style = ParagraphStyle("Extra", parent=self.style, fontSize=8, leading=17)
-            self._draw_text(self.card.extra, extra_style.fontSize, extra_style.leading, self.width / 2, style=extra_style)
+            extra_style = ParagraphStyle("Extra", parent=self.style, fontSize=8, leading=10)
+            self._draw_wrapped_text(self.card.extra, extra_style.fontSize, self.style.leading, self.width, self.width / 2, 17, style=extra_style)
 
         if self.card.index:
             index_style = ParagraphStyle("Index", parent=self.style, fontSize=6, leading=8)
@@ -88,60 +90,76 @@ class IndexedCardContent(Flowable):
 
         canvas.restoreState()
 
+    def _draw_wrapped_text(self, text, font_size, max_height, max_width, x, y, align="center", style=None):
+        if style is None:
+            style = self.style
+
+        lines = text.split("<br/>")
+        wrapped_lines = []
+
+        for line in lines:
+            wrapped_lines.extend(simpleSplit(line, style.fontName, font_size, max_width))
+
+        total_height = len(wrapped_lines) * style.leading
+        if total_height > max_height:
+            # If text is too tall, reduce font size
+            while total_height > max_height and font_size > 6:
+                font_size -= 1
+                wrapped_lines = []
+                for line in lines:
+                    wrapped_lines.extend(simpleSplit(line, style.fontName, font_size, max_width))
+                total_height = len(wrapped_lines) * style.leading
+
+        # Calculate starting y position for vertical centering
+        start_y = y + (total_height / 2) - (style.leading / 2)
+
+        for line in wrapped_lines:
+            self._draw_text(line, font_size, start_y, x, align, style)
+            start_y -= style.leading
+
     def _draw_text(self, text, font_size, y, x, align="center", style=None):
         if style is None:
             style = self.style
 
         canvas = self.canv
-        lines = text.split("<br/>")
-        for line in lines:
-            fragments = re.split(r"(<[^>]+>)", line)
-            line_width = 0
-            formatted_fragments = []
+        fragments = re.split(r"(<[^>]+>)", text)
+        line_width = sum(stringWidth(f, style.fontName, font_size) for f in fragments if not f.startswith("<"))
 
-            # First pass: calculate total width and prepare formatted fragments
-            for fragment in fragments:
-                if fragment.startswith("<"):
-                    formatted_fragments.append((fragment, None))
-                else:
-                    f_width = stringWidth(fragment, style.fontName, font_size)
-                    line_width += f_width
-                    formatted_fragments.append((fragment, f_width))
+        # Calculate starting x position
+        if align == "center":
+            start_x = x - line_width / 2
+        elif align == "right":
+            start_x = x - line_width
+        else:  # left align
+            start_x = x
 
-            # Calculate starting x position
-            if align == "center":
-                start_x = x - line_width / 2
-            elif align == "right":
-                start_x = x - line_width
-            else:  # left align
-                start_x = x
+        current_x = start_x
+        current_font = style.fontName
+        for fragment in fragments:
+            if fragment.startswith("<"):
+                if fragment == "<b>":
+                    current_font = self._get_font_variation(style.fontName, "Bold")
+                elif fragment == "</b>":
+                    current_font = style.fontName
+                elif fragment == "<i>":
+                    current_font = self._get_font_variation(style.fontName, "Oblique")
+                elif fragment == "</i>":
+                    current_font = style.fontName
+                elif fragment == "<u>":
+                    self.underline = True
+                elif fragment == "</u>":
+                    self.underline = False
+            else:
+                canvas.setFont(current_font, font_size)
+                canvas.drawString(current_x, y, fragment)
+                f_width = stringWidth(fragment, current_font, font_size)
+                if getattr(self, "underline", False):
+                    canvas.line(current_x, y - 2, current_x + f_width, y - 2)
+                current_x += f_width
 
-            # Second pass: draw fragments
-            current_x = start_x
-            current_font = style.fontName
-            for fragment, f_width in formatted_fragments:
-                if fragment.startswith("<"):
-                    fragment = fragment.lower()
-                    if fragment == "<b>":
-                        current_font = f"{style.fontName}-Bold"
-                    elif fragment == "</b>":
-                        current_font = style.fontName
-                    elif fragment == "<i>":
-                        current_font = f"{style.fontName}-Oblique"
-                    elif fragment == "</i>":
-                        current_font = style.fontName
-                    elif fragment == "<u>":
-                        self.underline = True
-                    elif fragment == "</u>":
-                        self.underline = False
-                else:
-                    canvas.setFont(current_font, font_size)
-                    canvas.drawString(current_x, y, fragment)
-                    if getattr(self, "underline", False):
-                        canvas.line(current_x, y - 2, current_x + f_width, y - 2)
-                    current_x += f_width
-
-            y -= style.leading
+    @staticmethod
+    def _get_font_variation(base_font, variation):
+        return f"{base_font}-{variation}"
 
 
 @dataclass
@@ -215,7 +233,7 @@ class FlashCardGenerator:
                 self.entries.append(FlashCard("", "", ""))
 
         styles = getSampleStyleSheet()
-        centered_style = ParagraphStyle(name="Centered", parent=styles["Normal"], alignment=TA_CENTER, fontName='DejaVuSans')
+        centered_style = ParagraphStyle(name="Centered", parent=styles["Normal"], alignment=TA_CENTER, fontName="DejaVuSans")
 
         for i in range(0, len(self.entries), cards_per_page):
             page_entries = self.entries[i : i + cards_per_page]

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph
 
 from flashcard_generator import FlashCard
 
@@ -66,7 +65,9 @@ def test_add_entries(fcg: FlashCardGenerator) -> None:
 
 
 def test_generate_flashcards(fcg: FlashCardGenerator) -> None:
-    fcg.add_entry("**Word1**", "__Translation1__", "*Extra1*").add_entry("Word2", "Translation2").add_entry("Word3", "Translation3", "Extra3").add_entry("Word4", "Translation4", index="Index4").generate()
+    fcg.add_entry("**Word1**", "__Some Very Long Translation1 That Should Wrap__", "*Extra1*").add_entry("Word2", "Translation2").add_entry(
+        "Word3", "Translation3", "Extra3"
+    ).add_entry("Word4", "Translation4", index="Index4").generate()
 
     assert fcg.filename.exists()
     # You might want to add more assertions here to check the content of the PDF
