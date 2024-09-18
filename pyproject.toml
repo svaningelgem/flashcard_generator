@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flashcard-generator"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Steven Van Ingelgem <steven@vaningelgem.be>"]
 license = "MIT"
