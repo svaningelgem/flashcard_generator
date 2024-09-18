@@ -121,12 +121,13 @@ class IndexedCardContent(Flowable):
             current_font = style.fontName
             for fragment, f_width in formatted_fragments:
                 if fragment.startswith("<"):
+                    fragment = fragment.lower()
                     if fragment == "<b>":
-                        current_font = self._get_font_variation(style.fontName, "Bold")
+                        current_font = f"{style.fontName}-Bold"
                     elif fragment == "</b>":
                         current_font = style.fontName
                     elif fragment == "<i>":
-                        current_font = self._get_font_variation(style.fontName, "Oblique")
+                        current_font = f"{style.fontName}-Oblique"
                     elif fragment == "</i>":
                         current_font = style.fontName
                     elif fragment == "<u>":
@@ -141,13 +142,6 @@ class IndexedCardContent(Flowable):
                     current_x += f_width
 
             y -= style.leading
-
-    @staticmethod
-    def _get_font_variation(base_font, variation):
-        try:
-            return f"{base_font}-{variation}"
-        except KeyError:
-            return base_font  # Fallback to base font if variation doesn't exist
 
 
 @dataclass
@@ -221,7 +215,7 @@ class FlashCardGenerator:
                 self.entries.append(FlashCard("", "", ""))
 
         styles = getSampleStyleSheet()
-        centered_style = ParagraphStyle(name="Centered", parent=styles["Normal"], alignment=TA_CENTER)
+        centered_style = ParagraphStyle(name="Centered", parent=styles["Normal"], alignment=TA_CENTER, fontName='DejaVuSans')
 
         for i in range(0, len(self.entries), cards_per_page):
             page_entries = self.entries[i : i + cards_per_page]
@@ -234,7 +228,7 @@ class FlashCardGenerator:
             self._place_on_page(self.card_height, card_width, self.cards_per_row, front_data, story)
 
             back_data = [
-                [Paragraph(entry.translation, centered_style) for entry in reversed(page_entries[j : j + self.cards_per_row])]
+                [IndexedCardContent(FlashCard(entry.translation, ""), centered_style) for entry in reversed(page_entries[j : j + self.cards_per_row])]
                 for j in range(0, len(page_entries), self.cards_per_row)
             ]
 
