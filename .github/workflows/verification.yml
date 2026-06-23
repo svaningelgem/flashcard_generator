@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ matrix.os }}-pip-${{ matrix.python-version }}
@@ -68,25 +68,25 @@ jobs:
           python-version: ${{ matrix.python-version }}
       #----------------------------------------------
       - name: cache venv
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .venv
           key: ${{ matrix.os }}-venv-${{ matrix.python-version }}
       #----------------------------------------------
       - name: cache poetry
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.local
           key: ${{ matrix.os }}-poetry-${{ matrix.python-version }}
       #----------------------------------------------
       - name: cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ matrix.os }}-pip-${{ matrix.python-version }}
       #----------------------------------------------
       - name: cache ruff
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ruff
           key: ${{ matrix.os }}-ruff-${{ matrix.python-version }}
