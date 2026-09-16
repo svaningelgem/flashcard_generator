@@ -27,11 +27,9 @@ Here's a simple example to get you started:
 from flashcard_generator import FlashCardGenerator
 
 generator = FlashCardGenerator()
-generator.set_filename("my_flashcards.pdf") \
-         .add_entry("Bonjour", "Hello", extra="Casual greeting", index="1") \
-         .add_entry("Merci", "Thank you", extra="**Important** phrase", index="2") \
-         .add_entry("Au revoir", "Goodbye", extra="*Formal* farewell", index="3") \
-         .generate()
+generator.set_filename("my_flashcards.pdf").add_entry("Bonjour", "Hello", extra="Casual greeting", index="1").add_entry(
+    "Merci", "Thank you", extra="**Important** phrase", index="2"
+).add_entry("Au revoir", "Goodbye", extra="*Formal* farewell", index="3").generate()
 ```
 
 This will create a PDF file named "my_flashcards.pdf" with three flashcards.
@@ -92,16 +90,13 @@ from flashcard_generator import FlashCardGenerator
 from reportlab.lib.units import cm
 
 generator = FlashCardGenerator()
-generator.set_filename("language_flashcards.pdf") \
-         .set_cards_per_row(3) \
-         .set_card_height(4*cm) \
-         .add_entry("Bonjour", "Hello", extra="Casual greeting", index="1") \
-         .add_entry("Merci beaucoup", "Thank you very much", extra="**Important** phrase for expressing gratitude", index="2") \
-         .add_entry("Au revoir", "Goodbye", extra="*Formal* farewell", index="3") \
-         .add_entry("S'il vous plaît", "Please", extra="__Polite__ request", index="4") \
-         .add_entry("Comment allez-vous?", "How are you?", extra="Formal way to ask about someone's wellbeing", index="5") \
-         .add_entry("Je ne comprends pas", "I don't understand", extra="Useful phrase when you're confused", index="6") \
-         .generate()
+generator.set_filename("language_flashcards.pdf").set_cards_per_row(3).set_card_height(4 * cm).add_entry(
+    "Bonjour", "Hello", extra="Casual greeting", index="1"
+).add_entry("Merci beaucoup", "Thank you very much", extra="**Important** phrase for expressing gratitude", index="2").add_entry(
+    "Au revoir", "Goodbye", extra="*Formal* farewell", index="3"
+).add_entry("S'il vous plaît", "Please", extra="__Polite__ request", index="4").add_entry(
+    "Comment allez-vous?", "How are you?", extra="Formal way to ask about someone's wellbeing", index="5"
+).add_entry("Je ne comprends pas", "I don't understand", extra="Useful phrase when you're confused", index="6").generate()
 ```
 
 This will create a PDF with 3 cards per row, each card 4 cm high, and include 6 flashcards with various formatting styles, extra information, and indices.
