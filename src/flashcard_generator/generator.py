@@ -24,12 +24,7 @@ from reportlab.platypus import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
-    import sys
-
-    if sys.version_info >= (3, 11):
-        from typing import Self
-    else:
-        Self = "FlashCardGenerator"
+    from typing import Self
 
 
 # Register a default font that supports various styles
