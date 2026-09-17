@@ -126,3 +126,6 @@ exclude_also = [
     "if TYPE_CHECKING:",
     "if typing.TYPE_CHECKING:",
 ]
+
+[tool.coverage.run]
+source = ["flashcard_generator"]
